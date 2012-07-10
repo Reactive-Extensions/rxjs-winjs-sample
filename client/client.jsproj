@@ -63,6 +63,8 @@
     <Content Include="pages\crop\crop.css" />
     <Content Include="pages\crop\crop.html" />
     <Content Include="pages\crop\crop.js" />
+    <Content Include="pages\crop\images\attribution.txt" />
+    <Content Include="pages\crop\images\leaf twirl.jpg" />
     <Content Include="pages\hub\hub.css" />
     <Content Include="pages\hub\hub.html" />
     <Content Include="pages\hub\hub.js" />
