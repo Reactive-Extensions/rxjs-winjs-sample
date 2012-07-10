@@ -72,6 +72,15 @@
     <Content Include="pages\stocks\stocks.css" />
     <Content Include="pages\stocks\stocks.html" />
     <Content Include="pages\stocks\stocks.js" />
+    <Content Include="rxjs\reactivewinjs.js" />
+    <Content Include="rxjs\readme.txt" />
+    <Content Include="rxjs\rx.aggregates.js" />
+    <Content Include="rxjs\rx.coincidence.js" />
+    <Content Include="rxjs\rx.experimental.js" />
+    <Content Include="rxjs\rx.joinpatterns.js" />
+    <Content Include="rxjs\rx.js" />
+    <Content Include="rxjs\rx.testing.js" />
+    <Content Include="rxjs\rx.time.js" />
     <None Include="client_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
