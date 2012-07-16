@@ -16,6 +16,10 @@
     {
         name: 'Time Files',
         page: 'timeflies'
+    },
+    {
+        name: 'AutoComplete',
+        page: 'autocomplete'
     }
     ];
 
