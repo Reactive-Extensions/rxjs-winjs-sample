@@ -72,6 +72,9 @@
     <Content Include="pages\stocks\stocks.css" />
     <Content Include="pages\stocks\stocks.html" />
     <Content Include="pages\stocks\stocks.js" />
+    <Content Include="pages\timeflies\timeflies.css" />
+    <Content Include="pages\timeflies\timeflies.html" />
+    <Content Include="pages\timeflies\timeflies.js" />
     <Content Include="rxjs\reactivewinjs.js" />
     <Content Include="rxjs\readme.txt" />
     <Content Include="rxjs\rx.aggregates.js" />

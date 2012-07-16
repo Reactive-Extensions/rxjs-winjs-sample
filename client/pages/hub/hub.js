@@ -12,7 +12,12 @@
     {
         name: 'Stocks',
         page: 'stocks'
-    }];
+    },
+    {
+        name: 'Time Files',
+        page: 'timeflies'
+    }
+    ];
 
 
     function gotoPage(args) {
