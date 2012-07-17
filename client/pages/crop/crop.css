@@ -7,11 +7,6 @@
     position: relative;
 }
 
-.crop section[role=main] #bounding-box {
-    border: 1px dashed white;
-    position: absolute;
-}
-
 .crop section[role=main] .handle {
     position: absolute;
     width: 20px;
