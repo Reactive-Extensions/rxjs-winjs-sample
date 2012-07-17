@@ -1,25 +1,73 @@
-﻿// For an introduction to the Page Control template, see the following documentation:
-// http://go.microsoft.com/fwlink/?LinkId=232511
-(function () {
-    "use strict";
+﻿(function () {
+    'use strict';
 
-    WinJS.UI.Pages.define("/pages/stocks/stocks.html", {
-        // This function is called whenever a user navigates to this page. It
-        // populates the page elements with the app's data.
+    var socket;
+    var connection = new WinJS.Binding.as({
+        state: 'connecting'
+    });
+
+    WinJS.UI.Pages.define('/pages/stocks/stocks.html', {
+
         ready: function (element, options) {
-            // TODO: Initialize the page here.
-        },
 
-        updateLayout: function (element, viewState, lastViewState) {
-            /// <param name="element" domElement="true" />
-            /// <param name="viewState" value="Windows.UI.ViewManagement.ApplicationViewState" />
-            /// <param name="lastViewState" value="Windows.UI.ViewManagement.ApplicationViewState" />
+            WinJS.Binding.processAll(element.querySelector('#state'), connection);
 
-            // TODO: Respond to changes in viewState.
+            var sets = {};
+
+            function getOrAddSet(name) {
+
+                if (sets[name]) return sets[name];
+
+                var set = new TimeSeries();
+                sets[name] = set;
+                smoothie.addTimeSeries(set, { strokeStyle: 'rgba(255, 0, 0, 1)', fillStyle: 'rgba(255, 0, 0, 0.2)', lineWidth: 1 });
+                return set;
+            }
+
+            var smoothie = new SmoothieChart({
+                minValue: 0.0,
+                maxValue: 100.0,
+                millisPerPixel: 20,
+                grid: {
+                    strokeStyle: '#555555',
+                    lineWidth: 1,
+                    millisPerLine: 1000,
+                    verticalSections: 12
+                }
+            });
+
+            //smoothie.addTimeSeries(dataSet1, { strokeStyle: 'rgba(255, 0, 0, 1)', fillStyle: 'rgba(255, 0, 0, 0.2)', lineWidth: 3 });
+            //smoothie.addTimeSeries(dataSet2, { strokeStyle: 'rgba(0, 255, 0, 1)', fillStyle: 'rgba(0, 255, 0, 0.2)', lineWidth: 3 });
+            //smoothie.addTimeSeries(dataSet3, { strokeStyle: 'rgba(0, 0, 255, 1)', fillStyle: 'rgba(0, 0, 255, 0.2)', lineWidth: 3 });
+            smoothie.streamTo(document.getElementById('chart'), 1000);
+
+            socket = new WebSocket('ws://localhost:8080', 'stock-protocol');
+            socket.addEventListener('open', function () {
+                connection.state = 'server found';
+            });
+
+            socket.addEventListener('error', function (args) {
+                connection.state = 'error';
+                debugger;
+            });
+
+            socket.addEventListener('message', function (args) {
+                var data = JSON.parse(args.data);
+                //var setDate = new Date(data.date).getTime();
+                var setDate = new Date().getTime();
+
+                data.data.forEach(function (entry) {
+                    var set = getOrAddSet(entry.symbol);
+                    var x = parseFloat(entry.open);
+                    set.append(setDate, x);
+                });
+            });
+
+
         },
 
         unload: function () {
-            // TODO: Respond to navigations away from this page.
+            socket.close();
         }
     });
 })();

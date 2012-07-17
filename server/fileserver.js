@@ -11,7 +11,7 @@ var getFiles = function () {
 		'EMC',
 		'F',
 		'GE',
-		'GOOG',
+		// 'GOOG',
 		'HP',
 		'IBM',
 		'MSFT',

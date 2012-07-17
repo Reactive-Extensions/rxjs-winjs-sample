@@ -8,7 +8,7 @@
     <link href="//Microsoft.WinJS.1.0.RC/css/ui-dark.css" rel="stylesheet" />
     <script src="//Microsoft.WinJS.1.0.RC/js/base.js"></script>
     <script src="//Microsoft.WinJS.1.0.RC/js/ui.js"></script>
-    
+
     <link href="stocks.css" rel="stylesheet" />
     <script src="stocks.js"></script>
 </head>
@@ -21,7 +21,9 @@
             </h1>
         </header>
         <section aria-label="Main content" role="main">
-            <p>Content goes here.</p>
+            <canvas id="chart" width="800" height="600"></canvas>
+            <div id="state" data-win-bind="innerText:state">xxx</div>
+
         </section>
     </div>
 </body>

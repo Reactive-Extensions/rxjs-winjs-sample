@@ -60,6 +60,7 @@
     <Content Include="images\storelogo.png" />
     <Content Include="js\default.js" />
     <Content Include="js\navigator.js" />
+    <Content Include="lib\smoothie.js" />
     <Content Include="pages\autocomplete\autocomplete.css" />
     <Content Include="pages\autocomplete\autocomplete.html" />
     <Content Include="pages\autocomplete\autocomplete.js" />
