@@ -63,6 +63,9 @@
     <Content Include="pages\autocomplete\autocomplete.css" />
     <Content Include="pages\autocomplete\autocomplete.html" />
     <Content Include="pages\autocomplete\autocomplete.js" />
+    <Content Include="pages\buffering\buffering.css" />
+    <Content Include="pages\buffering\buffering.html" />
+    <Content Include="pages\buffering\buffering.js" />
     <Content Include="pages\canvaspaint\canvaspaint.css" />
     <Content Include="pages\canvaspaint\canvaspaint.html" />
     <Content Include="pages\canvaspaint\canvaspaint.js" />

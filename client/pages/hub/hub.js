@@ -28,6 +28,10 @@
     {
         name: 'Drag and Drop',
         page: 'dragndrop'
+    },
+    {
+        name: 'Buffering',
+        page: 'buffering'
     }
     ];
 
