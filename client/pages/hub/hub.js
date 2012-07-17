@@ -24,6 +24,10 @@
     {
         name: 'Canvas Painting',
         page: 'canvaspaint'
+    },
+    {
+        name: 'Drag and Drop',
+        page: 'dragndrop'
     }
     ];
 
