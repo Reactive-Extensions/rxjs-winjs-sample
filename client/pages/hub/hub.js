@@ -20,6 +20,10 @@
     {
         name: 'AutoComplete',
         page: 'autocomplete'
+    },
+    {
+        name: 'Canvas Painting',
+        page: 'canvaspaint'
     }
     ];
 

@@ -63,6 +63,9 @@
     <Content Include="pages\autocomplete\autocomplete.css" />
     <Content Include="pages\autocomplete\autocomplete.html" />
     <Content Include="pages\autocomplete\autocomplete.js" />
+    <Content Include="pages\canvaspaint\canvaspaint.css" />
+    <Content Include="pages\canvaspaint\canvaspaint.html" />
+    <Content Include="pages\canvaspaint\canvaspaint.js" />
     <Content Include="pages\crop\crop.css" />
     <Content Include="pages\crop\crop.html" />
     <Content Include="pages\crop\crop.js" />

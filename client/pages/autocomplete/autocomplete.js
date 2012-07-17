@@ -18,14 +18,17 @@
 
     var subscription;
     function initialize() {
-        if (subscription) {
+
+        if (subscription && !subscription.isDisposed) {
             subscription.dispose();
         }
+        subscription = new Rx.SingleAssignmentDisposable();
 
         // Get input/output
         var input = document.querySelector('#rxInput');
         var resultsList = document.querySelector('#rxResults');
 
+        // Handle Key ups
         var keyup = Rx.Observable.fromEvent(input, 'keyup')
             .select(function (ev) {
                 return ev.currentTarget.value;
@@ -36,6 +39,7 @@
             .throttle(500)
             .distinctUntilChanged();
 
+        // Handle query
         var searcher = keyup
             .select(function (text) {
                 return searchWikipedia(text);
@@ -48,7 +52,8 @@
                 return results.length === 2;
             });
 
-        subscription = searcher.subscribe(
+        // Subscribe to results and handle the cancellation
+        subscription.setDisposable(searcher.subscribe(
             function (data) {
                 var results = data[1];
                 clearChildren(resultsList);
@@ -64,7 +69,7 @@
                 var li = document.createElement('li');
                 li.innerText = err;
                 resultsList.appendChild(li);
-            });
+            }));
     }
 
     WinJS.UI.Pages.define("/pages/autocomplete/autocomplete.html", {
@@ -83,9 +88,7 @@
         },
 
         unload: function () {
-            if (subscription) {
-                subscription.dispose();
-            }
+            subscription.dispose();
         }
     });
 })();
