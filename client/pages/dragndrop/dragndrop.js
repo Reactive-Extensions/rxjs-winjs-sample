@@ -3,50 +3,40 @@
 (function () {
     "use strict";
 
-    function getOffset(element) {
-        var doc = element.ownerDocument,
-            docElem = doc.documentElement,
-            body = doc.body,
-            clientTop = docElem.clientTop || body.clientTop || 0,
-            clientLeft = docElem.clientLeft || body.clientLeft || 0,
-            scrollTop = window.pageYOffset,
-            scrollLeft = window.pageXOffset;
-
-        return { top: scrollTop - clientTop, left: scrollLeft - clientLeft };
-    }
-
-    var subscription = new Rx.SingleAssignmentDisposable();
+    var subscription;
     function initialize() {
-        if (subscription && !subscription.isDisposed) {
-            subscription.dispose();
-        }
+        subscription =  new Rx.SingleAssignmentDisposable();
 
         var dragTarget = document.querySelector('#dragTarget');
 
         // Get the three major events
-        var mouseup = Rx.Observable.fromEvent(dragTarget, 'mouseup');
-        var mousemove = Rx.Observable.fromEvent(mousemove, 'mousemove');
-        var mousedown = Rx.Observable.fromEvent(dragTarget, 'mousedown').select(function (event) {
-            // calculate offsets when mouse down
-            event.preventDefault();
-            var offset = getOffset(dragTarget);
-            return { left: event.clientX - offset.left, top: event.clientY - offset.top };
-        });
+        var mouseup = Rx.Observable.fromEvent(dragTarget, 'mouseup').publish().refCount();
+        var mousemove = Rx.Observable.fromEvent(document, 'mousemove').publish().refCount();
+        var mousedown = Rx.Observable.fromEvent(dragTarget, 'mousedown').publish().refCount();
 
-        // Combine mouse down with mouse move until mouse up
-        var mousedrag = mousedown.selectMany(function (imageOffset) {
-            return mousemove.select(function (pos) {
-                // calculate offsets from mouse down to mouse moves
+        // Get the three major events
+        
+        var mousedrag = mousedown.selectMany(function (md) {
+            // calculate offsets when mouse down
+            var startX = md.offsetX;
+            var startY = md.offsetY;
+
+            return mousemove.select(function (mm) {
+                mm.preventDefault();
+
                 return {
-                    left: pos.clientX - imageOffset.left, top: pos.clientY - imageOffset.top
+                    element: md.target,
+                    left: mm.clientX - startX,
+                    top: mm.clientY - startY
                 };
             }).takeUntil(mouseup);
         });
 
         subscription.setDisposable(mousedrag.subscribe(function (pos) {
             // Update position
-            dragTarget.style.top = pos.top + 'px';
-            dragTarget.style.left = pos.left + 'px';         
+            var element = pos.element;
+            element.style.top = pos.top + 'px';
+            element.style.left = pos.left + 'px';
         }));
     }
 
