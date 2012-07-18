@@ -36,9 +36,9 @@ var processFile = function (symbol, data) {
 				symbol: symbol,
 				date: new Date(Date.parse(columns[0])).toJSON(),
 				open: columns[1],
-				close: columns[2],
-				high: columns[3],
-				low: columns[4],
+				high: columns[2],
+				low: columns[3],
+				close: columns[4],
 				volume: columns[5]
 			});
 		}

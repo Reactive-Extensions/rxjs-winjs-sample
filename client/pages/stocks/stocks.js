@@ -10,29 +10,6 @@
         state: 'connecting'
     });
 
-    Rx.Observable.fromSocket = function (url, protocol) {
-        return Rx.Observable.create(function (observer) {
-            var socket = new WebSocket(url, protocol);
-
-            socket.onmessage = function (data) {
-                observer.onNext(data);
-            };
-
-            socket.onerror = function (err) {
-                observer.onError(err);
-            };
-
-            socket.onclose = function () {
-                observer.onCompleted();
-            };
-
-            return function () {
-                socket.close();
-            };
-        });
-        
-    };
-
     var subscription;
 
     WinJS.UI.Pages.define('/pages/stocks/stocks.html', {
@@ -72,53 +49,102 @@
 
             subscription = new Rx.CompositeDisposable();
 
-            var observable = Rx.Observable.fromSocket('ws://localhost:8080', 'stock-protocol');
+            var observable = Rx.Subject.fromWebSocket('ws://localhost:8080', 'stock-protocol');
 
-            subscription.add(observable.subscribe(function (args) {
-                var data = JSON.parse(args.data);
-                var setDate = new Date().getTime();
+            //subscription.add(observable.subscribe(function (args) {
+            //    var data = JSON.parse(args.data);
+            //    var setDate = new Date().getTime();
 
-                data.data.forEach(function (entry) {
-                    var set = getOrAddSet(entry.symbol);
-                    var x = parseFloat(entry.open);
-                    set.append(setDate, x);
-                });
-            }, function (err) {
-                console.log(err);
-            }));
+            //    data.data.forEach(function (entry) {
+            //        var set = getOrAddSet(entry.symbol);
+            //        var x = parseFloat(entry.open);
+            //        set.append(setDate, x);
+            //    });
+            //}, function (err) {
+            //    console.log(err);
+            //}));
+
+            var stream = observable.selectMany(function (value) {
+                var data = JSON.parse(value.data);
+                return Rx.Observable.fromArray(data);
+            }).groupBy(function (quote) {
+                return quote.symbol;
+            }).selectMany(function (stockStream) {
+                return stockStream.bufferWithCount(5, 1);
+            }, function (stockStream, window) {
+                return { stockStream: stockStream, window: window };
+            }).where(function (t) {
+                return t.window.length > 0;
+            }).select(function (t) {
+
+                var len = t.window.length,
+                    averageVolume = 0,
+                    averageClose = 0,
+                    averageHigh = 0,                 
+                    averageLow = 0,
+                    maxVolume = 0,
+                    maxClose = 0,
+                    maxHigh = 0,
+                    maxLow = Number.MAX_VALUE;
+
+                for (var i = 0; i < len; i++) {
+                    var current = t.window[i];
+                    var high = parseInt(current.high);
+                    var low = parseInt(current.low);
+                    var close = parseInt(current.close);
+                    var volume = parseInt(current.volume);
+
+                    if (volume > maxVolume) maxVolume = volume;
+                    if (close > maxClose) maxClose = close;
+                    if (high > maxHigh) maxHigh = high;
+                    if (low < maxLow) maxLow = low;
+
+                    averageVolume += volume;
+                    averageClose += close;
+                    averageHigh += high;
+                    averageLow += low;
+                }
+
+                // Calculate averages
+                averageVolume = averageVolume / len;
+                averageClose = averageClose / len;
+                averageHigh = averageHigh / len;
+                averageLow = averageLow / len;
+
+                return {
+                    symbol: t.stockStream.key,
+                    firstClose: t.window[0].close,
+                    lastClose: t.window[len - 1].close,
+                    firstDate: t.window[0].date,
+                    lastDate: t.window[len - 1].date,
+                    averageVolume: averageVolume,
+                    averageHigh: averageHigh,
+                    averageLow: averageLow,
+                    maxVolume: maxVolume,
+                    maxClose: maxClose,
+                    maxHigh: maxHigh,
+                    maxLow: maxLow
+                };
+            });
 
             subscription.add(
-                observable.selectMany(function (value) {
-                    var data = JSON.parse(value.data);
-                    return Rx.Observable.fromArray(data.data);
-                }).groupBy(function (quote) {
-                    return quote.symbol;
-                }).selectMany(function (stockStream) {
-                    return stockStream.bufferWithCount(5, 1);
-                }, function (stockStream, window) {
-                    return { stockStream: stockStream, window: window };
-                }).where(function (t) {
-                    return t.window.length > 0;
-                }).select(function (t) {
-                    var len = t.window.length, averageHigh = 0, averageLow = 0;
-                    for (var i = 0; i < len; i++) {
-                        averageHigh += parseInt(t.window[i].high);
-                        averageLow += parseInt(t.window[i].low);
-                    }
-                    averageHigh = averageHigh / len;
-                    averageLow = averageLow / len;
-
-                    return {
-                        symbol: t.stockStream.key,
-                        averageHigh: averageHigh,
-                        averageLow: averageLow
-                    };
+                stream.where(function (x) {
+                    var percentage = (x.lastClose - x.firstClose) / x.firstClose;
+                    return Math.abs(percentage) >= 0.1;
                 }).subscribe(function (x) {
-                    console.log('Stock: ' + x.symbol + ' Average High: ' + x.averageHigh + ' Average Low: ' + x.averageLow);
+                    console.log('Price spiked by ' + x.symbol + ' from ' + x.firstClose + ' to ' + x.lastClose + ' in the week ending ' + x.lastDate);
                 }, function (err) {
                     console.log(err);
                 })
             );
+
+            //subscription.add(
+            //    stream.subscribe(function (x) {
+            //        console.log(JSON.stringify(x));
+            //    }, function (err) {
+            //        console.log(err);
+            //    })
+            //);
 
             //socket = new WebSocket('ws://localhost:8080', 'stock-protocol');
             //socket.addEventListener('open', function () {

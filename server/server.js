@@ -13,16 +13,10 @@ server.listen(8080, function() {
 
 wsServer = new WebSocketServer({
     httpServer: server,
-    // You should not use autoAcceptConnections for production
-    // applications, as it defeats all standard cross-origin protection
-    // facilities built into the protocol and the browser.  You should
-    // *always* verify the connection's origin and decide whether or not
-    // to accept it.
     autoAcceptConnections: false
 });
 
 function originIsAllowed(origin) {
-  // put logic here to detect whether the specified origin is allowed.
   return true;
 }
 
@@ -44,12 +38,9 @@ wsServer.on('request', function(request) {
     var currentRow = rowLength - 1;
     var id = setInterval(function () {
 
-        var results = { data: [] };
+        var results = [];
         for (var i = 0; i < dataLength; i++) {
-            if (i === 0) {
-                results.date = data[i][currentRow].date;
-            }
-            results.data.push(data[i][currentRow]);
+            results.push(data[i][currentRow]);
         }
         currentRow--;
         connection.sendUTF(JSON.stringify(results));
