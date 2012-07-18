@@ -72,6 +72,9 @@
     <Content Include="pages\canvaspaint\canvaspaint.css" />
     <Content Include="pages\canvaspaint\canvaspaint.html" />
     <Content Include="pages\canvaspaint\canvaspaint.js" />
+    <Content Include="pages\clock\clock.css" />
+    <Content Include="pages\clock\clock.html" />
+    <Content Include="pages\clock\clock.js" />
     <Content Include="pages\crop\crop.css" />
     <Content Include="pages\crop\crop.html" />
     <Content Include="pages\crop\crop.js" />

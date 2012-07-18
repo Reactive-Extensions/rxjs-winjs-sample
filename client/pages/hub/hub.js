@@ -36,6 +36,10 @@
     {
         name: 'Binding',
         page: 'binding'
+    },
+    {
+        name: 'Clock',
+        page: 'clock'
     }
     ];
 
