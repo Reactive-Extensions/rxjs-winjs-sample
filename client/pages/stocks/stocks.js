@@ -1,4 +1,8 @@
-﻿(function () {
+﻿/// <reference path="~/rxjs/rx.js" />
+/// <reference path="~/rxjs/rx.time.js" />
+/// <reference path="~/rxjs/reactivewinjs.js" />
+
+(function () {
     'use strict';
 
     var socket;
@@ -66,11 +70,11 @@
             //smoothie.addTimeSeries(dataSet3, { strokeStyle: 'rgba(0, 0, 255, 1)', fillStyle: 'rgba(0, 0, 255, 0.2)', lineWidth: 3 });
             smoothie.streamTo(document.getElementById('chart'), 1000);
 
-            subscription = new Rx.SingleAssignmentDisposable();
+            subscription = new Rx.CompositeDisposable();
 
             var observable = Rx.Observable.fromSocket('ws://localhost:8080', 'stock-protocol');
 
-            subscription.setDisposable(observable.subscribe(function (args) {
+            subscription.add(observable.subscribe(function (args) {
                 var data = JSON.parse(args.data);
                 var setDate = new Date().getTime();
 
@@ -79,7 +83,44 @@
                     var x = parseFloat(entry.open);
                     set.append(setDate, x);
                 });
+            }, function (err) {
+                console.log(err);
             }));
+
+            subscription.add(
+                observable.selectMany(function (value) {
+                    var data = JSON.parse(value.data);
+                    return Rx.Observable.fromArray(data.data);
+                }).groupBy(function (quote) {
+                    return quote.symbol;
+                }).selectMany(function (stockStream) {
+                    return stockStream.bufferWithCount(5, 1);
+                }, function (stockStream, window) {
+                    return { stockStream: stockStream, window: window };
+                }).where(function (t) {
+                    return t.window.length > 0;
+                }).select(function (t) {
+                    var len = t.window.length, averageHigh = 0, averageLow = 0;
+                    for (var i = 0; i < len; i++) {
+                        averageHigh += parseInt(t.window[i].high);
+                        averageLow += parseInt(t.window[i].low);
+                    }
+                    averageHigh = averageHigh / len;
+                    averageLow = averageLow / len;
+
+                    return {
+                        symbol: t.stockStream.key,
+                        averageHigh: averageHigh,
+                        averageLow: averageLow
+                    };
+                }).subscribe(function (x) {
+                    console.log('Stock: ' + x.symbol + ' Average High: ' + x.averageHigh + ' Average Low: ' + x.averageLow);
+                }, function (err) {
+                    console.log(err);
+                })
+
+            )
+                
 
             //socket = new WebSocket('ws://localhost:8080', 'stock-protocol');
             //socket.addEventListener('open', function () {

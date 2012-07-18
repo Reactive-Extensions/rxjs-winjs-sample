@@ -94,6 +94,8 @@
     <Content Include="pages\timeflies\timeflies.css" />
     <Content Include="pages\timeflies\timeflies.html" />
     <Content Include="pages\timeflies\timeflies.js" />
+    <Content Include="rxjs\l2o-ix.js" />
+    <Content Include="rxjs\l2o.js" />
     <Content Include="rxjs\reactivewinjs.js" />
     <Content Include="rxjs\readme.txt" />
     <Content Include="rxjs\rx.aggregates.js" />
