@@ -32,6 +32,10 @@
     {
         name: 'Buffering',
         page: 'buffering'
+    },
+    {
+        name: 'Binding',
+        page: 'binding'
     }
     ];
 

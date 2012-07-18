@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>binding</title>
+
+    <!-- WinJS references -->
+    <link href="//Microsoft.WinJS.1.0.RC/css/ui-dark.css" rel="stylesheet" />
+    <script src="//Microsoft.WinJS.1.0.RC/js/base.js"></script>
+    <script src="//Microsoft.WinJS.1.0.RC/js/ui.js"></script>
+    
+    <link href="binding.css" rel="stylesheet" />
+    <script src="binding.js"></script>
+</head>
+<body>
+    <div class="binding fragment">
+        <header aria-label="Header content" role="banner">
+            <button class="win-backbutton" aria-label="Back" disabled></button>
+            <h1 class="titlearea win-type-ellipsis">
+                <span class="pagetitle">Welcome the Binding Example</span>
+            </h1>
+        </header>
+        <section aria-label="Main content" role="main">
+            <h1>Customer Details 1</h1>
+            <div id="customerDetails1">
+                
+                <div>
+                    First Name:
+                    <span data-win-bind="innerText:firstName"></span>
+                </div>
+                <div>
+                    Last Name:
+                    <span data-win-bind="innerText:lastName"></span>
+                </div>
+
+            </div>
+            
+            <h1>Customer Details 2</h1>
+            <div id="customerDetails2">
+                
+                <div>
+                    First Name:
+                    <span data-win-bind="innerText:firstName"></span>
+                </div>
+                <div>
+                    Last Name:
+                    <span data-win-bind="innerText:lastName"></span>
+                </div>
+
+            </div>
+
+        </section>
+    </div>
+</body>
+</html>
