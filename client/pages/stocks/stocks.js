@@ -2,9 +2,34 @@
     'use strict';
 
     var socket;
-    var connection = new WinJS.Binding.as({
+    var connection = WinJS.Binding.as({
         state: 'connecting'
     });
+
+    Rx.Observable.fromSocket = function (url, protocol) {
+        return Rx.Observable.create(function (observer) {
+            var socket = new WebSocket(url, protocol);
+
+            socket.onmessage = function (data) {
+                observer.onNext(data);
+            };
+
+            socket.onerror = function (err) {
+                observer.onError(err);
+            };
+
+            socket.onclose = function () {
+                observer.onCompleted();
+            };
+
+            return function () {
+                socket.close();
+            };
+        });
+        
+    };
+
+    var subscription;
 
     WinJS.UI.Pages.define('/pages/stocks/stocks.html', {
 
@@ -41,19 +66,12 @@
             //smoothie.addTimeSeries(dataSet3, { strokeStyle: 'rgba(0, 0, 255, 1)', fillStyle: 'rgba(0, 0, 255, 0.2)', lineWidth: 3 });
             smoothie.streamTo(document.getElementById('chart'), 1000);
 
-            socket = new WebSocket('ws://localhost:8080', 'stock-protocol');
-            socket.addEventListener('open', function () {
-                connection.state = 'server found';
-            });
+            subscription = new Rx.SingleAssignmentDisposable();
 
-            socket.addEventListener('error', function (args) {
-                connection.state = 'error';
-                debugger;
-            });
+            var observable = Rx.Observable.fromSocket('ws://localhost:8080', 'stock-protocol');
 
-            socket.addEventListener('message', function (args) {
+            subscription.setDisposable(observable.subscribe(function (args) {
                 var data = JSON.parse(args.data);
-                //var setDate = new Date(data.date).getTime();
                 var setDate = new Date().getTime();
 
                 data.data.forEach(function (entry) {
@@ -61,13 +79,36 @@
                     var x = parseFloat(entry.open);
                     set.append(setDate, x);
                 });
-            });
+            }));
+
+            //socket = new WebSocket('ws://localhost:8080', 'stock-protocol');
+            //socket.addEventListener('open', function () {
+            //    connection.state = 'server found';
+            //});
+
+            //socket.addEventListener('error', function (args) {
+            //    connection.state = 'error';
+            //    debugger;
+            //});
+
+            //socket.addEventListener('message', function (args) {
+                //var data = JSON.parse(args.data);
+                ////var setDate = new Date(data.date).getTime();
+                //var setDate = new Date().getTime();
+
+                //data.data.forEach(function (entry) {
+                //    var set = getOrAddSet(entry.symbol);
+                //    var x = parseFloat(entry.open);
+                //    set.append(setDate, x);
+                //});
+            //});
 
 
         },
 
         unload: function () {
-            socket.close();
+            //socket.close();
+            subscription.dispose();
         }
     });
 })();
