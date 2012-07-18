@@ -14,8 +14,6 @@
         var mousemove = Rx.Observable.fromEvent(document, 'mousemove').publish().refCount();
         var mousedown = Rx.Observable.fromEvent(dragTarget, 'mousedown').publish().refCount();
 
-        // Get the three major events
-        
         var mousedrag = mousedown.selectMany(function (md) {
             // calculate offsets when mouse down
             var startX = md.offsetX;
