@@ -118,9 +118,7 @@
                 }, function (err) {
                     console.log(err);
                 })
-
-            )
-                
+            );
 
             //socket = new WebSocket('ws://localhost:8080', 'stock-protocol');
             //socket.addEventListener('open', function () {
