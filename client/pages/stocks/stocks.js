@@ -131,7 +131,7 @@
                     
                 }, function (err) {
                     connection.state = 'error';
-                    console.dir(err);
+                    console.log(err);
                 })
             );
         },
