@@ -5,34 +5,34 @@
 (function () {
     'use strict';
 
-    var socket;
-    var connection = WinJS.Binding.as({
-        state: 'connecting'
-    });
-
     var subscription;
 
     WinJS.UI.Pages.define('/pages/stocks/stocks.html', {
-
+        connection: WinJS.Binding.as({
+            state: 'connecting'
+        }),
         ready: function (element, options) {
+            var sets = {};
+            var colors = new Sample.colorProvider();
+            var connection = WinJS.Binding.as({
+                state: 'connecting'
+            });
 
             WinJS.Binding.processAll(element.querySelector('#state'), connection);
 
-            var sets = {};
+            function getOrAddSet(name, type) {
 
-            function getOrAddSet(name) {
+                var setName = (type) ? name + '.' + type : name;
+                if (sets[setName]) return sets[setName];
 
-                if (sets[name]) return sets[name];
-
-                var set = new TimeSeries();
-                sets[name] = set;
-                smoothie.addTimeSeries(set, { strokeStyle: 'rgba(255, 0, 0, 1)', fillStyle: 'rgba(255, 0, 0, 0.2)', lineWidth: 1 });
+                var set = new TimeSeries({ type: type });
+                sets[setName] = set;
+                smoothie.addTimeSeries(set, { strokeStyle: colors.forKey(name), lineWidth: 1 });
                 return set;
             }
 
             var smoothie = new SmoothieChart({
                 minValue: 0.0,
-                maxValue: 100.0,
                 millisPerPixel: 20,
                 grid: {
                     strokeStyle: '#555555',
@@ -42,27 +42,13 @@
                 }
             });
 
-            //smoothie.addTimeSeries(dataSet1, { strokeStyle: 'rgba(255, 0, 0, 1)', fillStyle: 'rgba(255, 0, 0, 0.2)', lineWidth: 3 });
-            //smoothie.addTimeSeries(dataSet2, { strokeStyle: 'rgba(0, 255, 0, 1)', fillStyle: 'rgba(0, 255, 0, 0.2)', lineWidth: 3 });
-            //smoothie.addTimeSeries(dataSet3, { strokeStyle: 'rgba(0, 0, 255, 1)', fillStyle: 'rgba(0, 0, 255, 0.2)', lineWidth: 3 });
             smoothie.streamTo(document.getElementById('chart'), 1000);
 
             subscription = new Rx.CompositeDisposable();
 
-            var observable = Rx.Subject.fromWebSocket('ws://localhost:8080', 'stock-protocol');
-
-            //subscription.add(observable.subscribe(function (args) {
-            //    var data = JSON.parse(args.data);
-            //    var setDate = new Date().getTime();
-
-            //    data.data.forEach(function (entry) {
-            //        var set = getOrAddSet(entry.symbol);
-            //        var x = parseFloat(entry.open);
-            //        set.append(setDate, x);
-            //    });
-            //}, function (err) {
-            //    console.log(err);
-            //}));
+            var observable = Rx.Subject.fromWebSocket('ws://localhost:8080', 'stock-protocol', function () {
+                connection.state = 'server found';
+            });
 
             var stream = observable.selectMany(function (value) {
                 var data = JSON.parse(value.data);
@@ -80,7 +66,7 @@
                 var len = t.window.length,
                     averageVolume = 0,
                     averageClose = 0,
-                    averageHigh = 0,                 
+                    averageHigh = 0,
                     averageLow = 0,
                     maxVolume = 0,
                     maxClose = 0,
@@ -128,51 +114,29 @@
             });
 
             subscription.add(
-                stream.where(function (x) {
+                stream
+                .subscribe(function (x) {
+                    var timeStamp = new Date().getTime()
+                    var set = getOrAddSet(x.symbol);
+                    var price = parseFloat(x.lastClose);
+                    set.append(timeStamp, price);
+
                     var percentage = (x.lastClose - x.firstClose) / x.firstClose;
-                    return Math.abs(percentage) >= 0.1;
-                }).subscribe(function (x) {
-                    console.log('Price spiked by ' + x.symbol + ' from ' + x.firstClose + ' to ' + x.lastClose + ' in the week ending ' + x.lastDate);
+                    if (Math.abs(percentage) >= 0.1) {
+                        console.log('Price spiked by ' + x.symbol + ' from ' + x.firstClose + ' to ' + x.lastClose + ' in the week ending ' + x.lastDate);
+                        var sticks = getOrAddSet(x.symbol, 'candlestick');
+                        var radius = Math.abs(percentage) * 33;
+                        sticks.append(timeStamp, price, radius);
+                    }
+                    
                 }, function (err) {
-                    console.log(err);
+                    connection.state = 'error';
+                    console.dir(err);
                 })
             );
-
-            //subscription.add(
-            //    stream.subscribe(function (x) {
-            //        console.log(JSON.stringify(x));
-            //    }, function (err) {
-            //        console.log(err);
-            //    })
-            //);
-
-            //socket = new WebSocket('ws://localhost:8080', 'stock-protocol');
-            //socket.addEventListener('open', function () {
-            //    connection.state = 'server found';
-            //});
-
-            //socket.addEventListener('error', function (args) {
-            //    connection.state = 'error';
-            //    debugger;
-            //});
-
-            //socket.addEventListener('message', function (args) {
-                //var data = JSON.parse(args.data);
-                ////var setDate = new Date(data.date).getTime();
-                //var setDate = new Date().getTime();
-
-                //data.data.forEach(function (entry) {
-                //    var set = getOrAddSet(entry.symbol);
-                //    var x = parseFloat(entry.open);
-                //    set.append(setDate, x);
-                //});
-            //});
-
-
         },
 
         unload: function () {
-            //socket.close();
             subscription.dispose();
         }
     });

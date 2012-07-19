@@ -58,6 +58,7 @@
     <Content Include="images\smalllogo.png" />
     <Content Include="images\splashscreen.png" />
     <Content Include="images\storelogo.png" />
+    <Content Include="js\colorProvider.js" />
     <Content Include="js\default.js" />
     <Content Include="js\navigator.js" />
     <Content Include="lib\smoothie.js" />
