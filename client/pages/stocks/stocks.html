@@ -22,8 +22,11 @@
         </header>
         <section aria-label="Main content" role="main">
             <canvas id="chart" width="800" height="600"></canvas>
-            <div id="state" data-win-bind="innerText:state">xxx</div>
-
+            <div id="selectedSymbol">
+                <div data-win-bind="innerText:symbol"></div>
+                <div data-win-bind="innerText:lastClose"></div>
+            </div>
+            <div id="state" data-win-bind="innerText:state"></div>
         </section>
     </div>
 </body>

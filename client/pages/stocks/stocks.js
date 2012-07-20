@@ -8,9 +8,11 @@
     var subscription;
 
     WinJS.UI.Pages.define('/pages/stocks/stocks.html', {
+
         connection: WinJS.Binding.as({
             state: 'connecting'
         }),
+
         ready: function (element, options) {
             var sets = {};
             var colors = new Sample.colorProvider();
@@ -98,6 +100,7 @@
                 averageLow = averageLow / len;
 
                 return {
+                    timestamp: new Date().getTime(),
                     symbol: t.stockStream.key,
                     firstClose: t.window[0].close,
                     lastClose: t.window[len - 1].close,
@@ -111,29 +114,55 @@
                     maxHigh: maxHigh,
                     maxLow: maxLow
                 };
+            })
+            .publish()
+            .refCount();
+
+            function onError(err) {
+                connection.state = 'error';
+                console.log(err);
+                debugger;
+            }
+
+            var selectedSymbolModel = WinJS.Binding.as({
+                symbol: '',
+                lastClose: null
             });
+            WinJS.Binding.processAll(element.querySelector('#selectedSymbol'), selectedSymbolModel);
 
-            subscription.add(
-                stream
-                .subscribe(function (x) {
-                    var timeStamp = new Date().getTime()
-                    var set = getOrAddSet(x.symbol);
-                    var price = parseFloat(x.lastClose);
-                    set.append(timeStamp, price);
 
-                    var percentage = (x.lastClose - x.firstClose) / x.firstClose;
-                    if (Math.abs(percentage) >= 0.1) {
-                        console.log('Price spiked by ' + x.symbol + ' from ' + x.firstClose + ' to ' + x.lastClose + ' in the week ending ' + x.lastDate);
-                        var sticks = getOrAddSet(x.symbol, 'candlestick');
-                        var radius = Math.abs(percentage) * 33;
-                        sticks.append(timeStamp, price, radius);
-                    }
-                    
-                }, function (err) {
-                    connection.state = 'error';
-                    console.log(err);
+            var selectedSymbol = 'MSFT';
+            var latestPrice = stream
+                .where(function (x) {
+                    return x.symbol === selectedSymbol;
                 })
-            );
+                .sample(3000 /*ms*/)
+                .subscribe(function (x) {
+                    selectedSymbolModel.symbol = x.symbol;
+                    selectedSymbolModel.lastClose = x.lastClose;
+                });
+
+            var lineGraph = stream
+                .subscribe(function (x) {
+                    var set = getOrAddSet(x.symbol);
+                    set.append(x.timestamp, x.lastClose);
+                }, onError);
+
+            var spikes = stream
+                .doAction(function (x) {
+                    x.spike = (x.lastClose - x.firstClose) / x.firstClose;
+                })
+                .where(function (x) {
+                    return Math.abs(x.spike) >= 0.1;
+                })
+                .subscribe(function (x) {
+                    //console.log('Price spiked by ' + x.symbol + ' from ' + x.firstClose + ' to ' + x.lastClose + ' in the week ending ' + x.lastDate);
+                    var sticks = getOrAddSet(x.symbol, 'candlestick');
+                    var radius = Math.abs(x.spike) * 33;
+                    sticks.append(x.timestamp, x.lastClose, radius);
+                }, onError);
+
+            subscription.add(lineGraph, spikes);
         },
 
         unload: function () {
