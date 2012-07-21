@@ -14,19 +14,40 @@
 </head>
 <body>
     <div class="stocks fragment">
-        <header aria-label="Header content" role="banner">
+        <header aria-label="Header content" role="banner" style="-ms-grid-column: 1; -ms-grid-column-span: 2;">
             <button class="win-backbutton" aria-label="Back" disabled></button>
             <h1 class="titlearea win-type-ellipsis">
                 <span class="pagetitle">real-time</span>
             </h1>
         </header>
+
         <section aria-label="Main content" role="main">
-            <canvas id="chart" width="800" height="600"></canvas>
+
+            <div id="chartLayoutRoot">
+                <canvas id="chart" width="800" height="600"></canvas>
+            </div>
+
+            <div id="state" data-win-bind="innerText:state">
+            </div>
+
+            <div class="legendItemTemplate" data-win-control="WinJS.Binding.Template">
+                <div class="legendItem" data-win-bind="style.backgroundColor:color">
+                    <span data-win-bind="innerText:symbol"></span>
+                </div>
+            </div>
+
+            <div id="legend"
+                data-win-control="WinJS.UI.ListView"
+                data-win-options="{ 
+                    itemTemplate: select('.legendItemTemplate'),
+                    selectionMode: 'single'
+                }">
+            </div>
+
             <div id="selectedSymbol">
                 <div data-win-bind="innerText:symbol"></div>
                 <div data-win-bind="innerText:lastClose"></div>
             </div>
-            <div id="state" data-win-bind="innerText:state"></div>
         </section>
     </div>
 </body>
