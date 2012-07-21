@@ -10,10 +10,35 @@
         }
     }
 
+    var searchPane = Windows.ApplicationModel.Search.SearchPane.getForCurrentView();
+    var suggestionsRequested = Rx.Observable.fromEvent(searchPane, 'suggestionsrequested').publish().refCount();
+
+    suggestionsRequested.subscribe(function (x) {
+        console.log(x.queryText);
+    });
+
+    var suggestionObs = suggestionsRequested
+        .select(function (e) { return { deferral: e.request.getDeferral(), eventObject: e }; })
+        .throttle(1000)
+        .select(function (e) {
+            return searchWikipedia(e.eventObject.queryText).select(function (r) {
+                return { results: r, eventObject: e.eventObject, deferral: e.deferral };
+            });
+        })
+        .switchLatest();
+
+    suggestionObs.subscribe(function (e) {
+        var suggestionRequest = e.eventObject.request;
+        suggestionRequest.searchSuggestionCollection.appendQuerySuggestions(e.results[1]);
+        e.deferral.complete();
+    });
+
     function searchWikipedia(term) {
         var url = 'http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search='
-            + window.encodeURI(term);// + '&callback=JSONPCallback';
-        return WinJS.xhr({url: url}).toObservable();
+            + window.encodeURI(term);
+        return WinJS.xhr({ url: url }).toObservable().select(function (response) {
+            return JSON.parse(response.response);
+        });
     }
 
     var subscription;
@@ -45,9 +70,6 @@
                 return searchWikipedia(text);
             })
             .switchLatest()
-            .select(function (response) {
-                return JSON.parse(response.response);
-            })
             .where(function (results) {
                 return results.length === 2;
             });
