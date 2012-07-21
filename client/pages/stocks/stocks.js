@@ -115,12 +115,12 @@
         },
 
         ready: function (element, options) {
-            var self = this;
-            var sets = {};
-            var connection = this.connection;
-            var selection = this.selection;
-            var legend = this.legend;
-            var colors = new Sample.colorProvider();
+            var self = this,
+                sets = {},
+                connection = this.connection,
+                selection = this.selection,
+                legend = this.legend,
+                colors = new Sample.colorProvider();
 
             var smoothie = setupChart();
 
@@ -150,6 +150,7 @@
                 connection.state = 'server found';
             });
 
+            // define the primary stream of real-time data
             var stream = observable
                 .selectMany(function (value) {
                     var data = JSON.parse(value.data);
@@ -170,6 +171,14 @@
                 .publish()
                 .refCount();
 
+            // draw a line graph of the lastClose price
+            var lineGraph = stream
+                .subscribe(function (x) {
+                    var set = getOrAddSet(x.symbol);
+                    set.append(x.timestamp, x.lastClose);
+                }, onError);
+
+            // if the data matches the selected symbol, update the selection view model
             var latestPrice = stream
                 .where(function (x) {
                     return x.symbol === selection.symbol;
@@ -179,6 +188,7 @@
                     selection.lastClose = x.lastClose;
                 });
 
+            // if we receive a new symbol, add it to the legend
             var symbols = stream
                 .subscribe(function (x) {
                     if (connection.state !== 'receiving data') { connection.state = 'receiving data'; }
@@ -190,12 +200,7 @@
                     }
                 }, onError);
 
-            var lineGraph = stream
-                .subscribe(function (x) {
-                    var set = getOrAddSet(x.symbol);
-                    set.append(x.timestamp, x.lastClose);
-                }, onError);
-
+            // if there is a spike in the price, render that as a circle
             var spikes = stream
                 .doAction(function (x) {
                     x.spike = (x.lastClose - x.firstClose) / x.firstClose;
@@ -204,13 +209,13 @@
                     return Math.abs(x.spike) >= 0.1;
                 })
                 .subscribe(function (x) {
-                    //console.log('Price spiked by ' + x.symbol + ' from ' + x.firstClose + ' to ' + x.lastClose + ' in the week ending ' + x.lastDate);
+                    // console.log('Price spiked by ' + x.symbol + ' from ' + x.firstClose + ' to ' + x.lastClose + ' in the week ending ' + x.lastDate);
                     var sticks = getOrAddSet(x.symbol, 'candlestick');
                     var radius = Math.abs(x.spike) * 33;
                     sticks.append(x.timestamp, x.lastClose, radius);
                 }, onError);
 
-            subscription.add(lineGraph, spikes);
+            subscription.add(lineGraph, spikes, latestPrice, symbols);
         },
 
         updateLayout: function () {
