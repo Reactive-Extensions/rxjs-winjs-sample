@@ -16,8 +16,8 @@
 
 .stocks #state {
     -ms-grid-column: 2;
-    -ms-grid-row: 2;
-    color: rgba(255,255,255,0.2);
+    -ms-grid-row: 1;
+    color: yellow;
 }
 
 .stocks section[role="directory"] {
@@ -43,5 +43,10 @@
     height: 100%;
     width: 100%;
     -ms-grid-row: 2;
-    -ms-grid-column: 3;
+    -ms-grid-column-span: 3;
+}
+
+.stocks .selectedItem {
+    width: 250px;
+    font-weight: bold;
 }

@@ -2,47 +2,82 @@
 /// <reference path="/rxjs/reactivewinjs.js" />
 (function () {
     "use strict";
+    
+    // Without RxJS
+    var isDrag, offset, dragElement;
 
+    function onmouseup() {
+        isDrag = false;
+    }
+    
+    function onmousemove(e) {
+        if (isDrag) {
+            dragElement.style.left = (e.clientX - offset.startX) + 'px';
+            dragElement.style.top = (e.clientY - offset.startY) + 'px';
+        }
+    }
+    
+    function onmousedown(e) {
+        e.preventDefault();
+        isDrag = true;
+        offset = { startX: e.offsetX, startY: e.offsetY };
+    }
+    
+    function initializeWithoutRxJs() {
+        dragElement = document.querySelector('#dragTarget');
+        dragElement.addEventListener('mouseup', onmouseup, false);
+        document.addEventListener('mousemove', onmousemove, false);
+        dragElement.addEventListener('mousedown', onmousedown, false);
+    }
+    
+    function teardownWithoutRxJs() {
+        dragElement.removeEventListener('mouseup', onmouseup, false);
+        document.removeEventListener('mousemove', onmousemove, false);
+        dragElement.removeEventListener('mousedown', onmousedown, false);
+    }
+
+    // With RxJS
     var subscription;
+    
     function initialize() {
-        subscription =  new Rx.SingleAssignmentDisposable();
-
         var dragTarget = document.querySelector('#dragTarget');
 
         // Get the three major events
-        var mouseup = Rx.Observable.fromEvent(dragTarget, 'mouseup').publish().refCount();
-        var mousemove = Rx.Observable.fromEvent(document, 'mousemove').publish().refCount();
-        var mousedown = Rx.Observable.fromEvent(dragTarget, 'mousedown').publish().refCount();
+        var mouseup = Rx.Observable.fromEvent(dragTarget, 'mouseup');
+        var mousemove = Rx.Observable.fromEvent(document, 'mousemove');
+        var mousedown = Rx.Observable.fromEvent(dragTarget, 'mousedown');
 
         var mousedrag = mousedown.selectMany(function (md) {
             // calculate offsets when mouse down
-            var startX = md.offsetX;
-            var startY = md.offsetY;
+            var startX = md.offsetX, startY = md.offsetY;
 
             return mousemove.select(function (mm) {
                 mm.preventDefault();
 
                 return {
-                    element: md.target,
                     left: mm.clientX - startX,
                     top: mm.clientY - startY
                 };
             }).takeUntil(mouseup);
         });
 
-        subscription.setDisposable(mousedrag.subscribe(function (pos) {
+        subscription = mousedrag.subscribe(function (pos) {
             // Update position
-            var element = pos.element;
-            element.style.top = pos.top + 'px';
-            element.style.left = pos.left + 'px';
-        }));
+            dragTarget.style.top = pos.top + 'px';
+            dragTarget.style.left = pos.left + 'px';
+        });
+    }
+    
+    function teardown() {
+        subscription.dispose();
     }
 
     WinJS.UI.Pages.define("/pages/dragndrop/dragndrop.html", {
         // This function is called whenever a user navigates to this page. It
         // populates the page elements with the app's data.
         ready: function (element, options) {
-            initialize();
+            //initialize();
+            initializeWithoutRxJs();
         },
 
         updateLayout: function (element, viewState, lastViewState) {
@@ -54,7 +89,8 @@
         },
 
         unload: function () {
-            subscription.dispose();
+            //teardown();
+            teardownWithoutRxJs();
         }
     });
 })();

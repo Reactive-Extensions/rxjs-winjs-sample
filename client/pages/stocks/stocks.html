@@ -24,7 +24,11 @@
         <section aria-label="Main content" role="main">
 
             <div id="chartLayoutRoot">
-                <canvas id="chart" width="800" height="600"></canvas>
+                <canvas id="chart" width="800" height="400"></canvas>
+            </div>
+            
+            <div id="subChartLayoutRoot">
+                <canvas id="subchart" width="400" height="200"></canvas>
             </div>
 
             <div id="state" data-win-bind="innerText:state">
@@ -37,17 +41,31 @@
             </div>
 
             <div id="legend"
+                 data-win-control="WinJS.UI.ListView"
+                 data-win-options="{ 
+	                itemTemplate: select('.legendItemTemplate'),
+	                selectionMode: 'multi'
+                }">
+            </div>
+            
+            <div class="selectedSymbolItemTemplate" data-win-control="WinJS.Binding.Template">
+                <div class="selectedItem">
+                    <div>Symbol: <span data-win-bind="innerText:symbol"></span></div>
+                    <div>Last Close: <span data-win-bind="innerText:lastClose"></span></div>
+                    <div>Average High: <span data-win-bind="innerText:averageHigh"></span></div>
+                    <div>Average Low: <span data-win-bind="innerText:averageLow"></span></div>
+                </div>
+            </div>
+
+            <div id="selectedSymbol" 
                 data-win-control="WinJS.UI.ListView"
-                data-win-options="{ 
-                    itemTemplate: select('.legendItemTemplate'),
-                    selectionMode: 'single'
+                 data-win-options="{ 
+	            itemTemplate: select('.selectedSymbolItemTemplate'),
+	            selectionMode: 'none',
+                layout: 'horizontal'
                 }">
             </div>
 
-            <div id="selectedSymbol">
-                <div data-win-bind="innerText:symbol"></div>
-                <div data-win-bind="innerText:lastClose"></div>
-            </div>
         </section>
     </div>
 </body>

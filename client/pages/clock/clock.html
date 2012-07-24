@@ -23,8 +23,10 @@
         <section aria-label="Main content" role="main">
             <div>
                 Current Location:
-                <h2 data-win-bind="innerText:currentTime WinJSClock.Converters.timeConverter"></h2>
+                <span data-win-bind="innerText:currentTime WinJSClock.Converters.timeConverter"></span>
             </div>
+            
+            <canvas id="clock"></canvas>
         </section>
     </div>
 </body>

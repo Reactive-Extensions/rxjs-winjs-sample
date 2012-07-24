@@ -21,34 +21,24 @@
             </h1>
         </header>
         <section aria-label="Main content" role="main">
-            <h1>Customer Details 1</h1>
-            <div id="customerDetails1">
-                
-                <div>
-                    First Name:
-                    <span data-win-bind="innerText:firstName"></span>
-                </div>
-                <div>
-                    Last Name:
-                    <span data-win-bind="innerText:lastName"></span>
-                </div>
+            
+            <div id="bartTable">
+                <div>Bart</div>
+                <div>Age: <span data-win-bind="innerText:age"></span></div>
+                <button id="bartButtonPlus1">Birthday!</button>
+                <button id="bartButtonLiving">Live...</button>
+            </div>
 
+            <div id="mattTable">
+                <div>Matt</div>
+                <div>Age: <span data-win-bind="innerText:age"></span></div>
+                <button id="mattButtonPlus1">Birthday!</button>
+                <button id="mattButtonLiving">Live...</button>
             </div>
             
-            <h1>Customer Details 2</h1>
-            <div id="customerDetails2">
-                
-                <div>
-                    First Name:
-                    <span data-win-bind="innerText:firstName"></span>
-                </div>
-                <div>
-                    Last Name:
-                    <span data-win-bind="innerText:lastName"></span>
-                </div>
-
+            <div id="sumTable">
+                <div>Combined age: <span data-win-bind="innerText:age"></span></div>
             </div>
-
         </section>
     </div>
 </body>

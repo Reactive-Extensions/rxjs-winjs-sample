@@ -1,12 +1,24 @@
-﻿/// <reference path="~/rxjs/rx.js" />
-/// <reference path="~/rxjs/rx.time.js" />
-/// <reference path="~/rxjs/reactivewinjs.js" />
+﻿/// <reference path="/rxjs/rx.js" />
+/// <reference path="/rxjs/rx.time.js" />
+/// <reference path="/rxjs/reactivewinjs.js" />
 
 (function () {
     'use strict';
+    
+    // Convert the date/time to a string
+    var dateConverter = WinJS.Binding.converter(function (date) {
+        if (date === '') return '';
+        var currentDate = new Date(date);
+        return currentDate.toDateString();
+    });
+
+    WinJS.Namespace.define('WinJSStocks.Converters', {
+        dateConverter: dateConverter
+    });
 
     var subscription;
 
+    // Set up the chart
     function setupChart() {
 
         var smoothie = new SmoothieChart({
@@ -25,9 +37,10 @@
         return smoothie;
     }
 
+    // Calculate averages/max/min per buffer
     function calculate(t) {
 
-        var len = t.window.length,
+        var len = t.buffer.length,
             averageVolume = 0,
             averageClose = 0,
             averageHigh = 0,
@@ -38,7 +51,7 @@
             maxLow = Number.MAX_VALUE;
 
         for (var i = 0; i < len; i++) {
-            var current = t.window[i];
+            var current = t.buffer[i];
             var high = parseInt(current.high);
             var low = parseInt(current.low);
             var close = parseInt(current.close);
@@ -62,13 +75,14 @@
         averageLow = averageLow / len;
 
         return {
-            timestamp: new Date().getTime(),
+            timestamp: t.buffer[len - 1].timestamp,
             symbol: t.stockStream.key,
-            firstClose: t.window[0].close,
-            lastClose: t.window[len - 1].close,
-            firstDate: t.window[0].date,
-            lastDate: t.window[len - 1].date,
+            firstClose: t.buffer[0].close,
+            lastClose: t.buffer[len - 1].close,
+            firstDate: t.buffer[0].date,
+            lastDate: t.buffer[len - 1].date,
             averageVolume: averageVolume,
+            averageClose: averageClose,
             averageHigh: averageHigh,
             averageLow: averageLow,
             maxVolume: maxVolume,
@@ -80,12 +94,6 @@
 
     WinJS.UI.Pages.define('/pages/stocks/stocks.html', {
 
-        // the current selected item on the legend
-        selection: WinJS.Binding.as({
-            symbol: '',
-            lastClose: ''
-        }),
-
         // status about the serve connection
         connection: WinJS.Binding.as({
             state: 'connecting'
@@ -93,32 +101,50 @@
 
         // the list of symbols that have been received from the server
         legend: new WinJS.Binding.List(),
+        
+        selectedSymbol: new WinJS.Binding.List(),
 
         // setting up the bindings and controls
         setupBindings: function (element) {
             var processAll = WinJS.Binding.processAll;
             var self = this;
 
-            processAll(element.querySelector('#selectedSymbol'), this.selection);
             processAll(element.querySelector('#state'), this.connection);
 
             var lv = document.querySelector('#legend').winControl;
             lv.itemDataSource = this.legend.dataSource;
+
+            var sl = document.querySelector('#selectedSymbol').winControl;
+            sl.itemDataSource = this.selectedSymbol.dataSource;
+            
             lv.addEventListener('selectionchanged', function () {
+                
                 // when an item is selected on the legend,
                 // begin tracking the stats of that item
                 lv.selection.getItems().then(function (items) {
-                    self.selection.symbol = items[0].data.symbol;
-                    self.selection.lastClose = '...';
+                    if (items.length == 0) return;
+
+                    self.selectedSymbol.splice(0, self.selectedSymbol.length);
+
+                    items.forEach(function (item) {
+                        var stock = WinJS.Binding.as({
+                            symbol: item.data.symbol,
+                            lastClose: '',
+                            lastDate: '',
+                            averageHigh: '',
+                            averageLow: ''
+                        });
+  
+                        self.selectedSymbol.push(stock);
+                    });
                 });
             });
         },
 
         ready: function (element, options) {
-            var self = this,
-                sets = {},
+            var sets = {},
                 connection = this.connection,
-                selection = this.selection,
+                //selection = this.selection,
                 legend = this.legend,
                 colors = new Sample.colorProvider();
 
@@ -151,25 +177,52 @@
             });
 
             // define the primary stream of real-time data
-            var stream = observable
+            var groupedTickStream = observable
                 .selectMany(function (value) {
                     var data = JSON.parse(value.data);
-                    return Rx.Observable.fromArray(data);
+                    var date = new Date().getTime();
+                    return Rx.Observable.fromArray(data).doAction(function(x) {
+                        x.timestamp = date;
+                    });
                 })
                 .groupBy(function (quote) {
                     return quote.symbol;
                 })
-                .selectMany(function (stockStream) {
+                .publish()
+                .refCount();
+
+            // Define a stream grouped by a 5 day window with a 1 day skip
+            var stream = groupedTickStream
+                .selectMany(function(stockStream) {
                     return stockStream.bufferWithCount(5, 1);
-                }, function (stockStream, window) {
-                    return { stockStream: stockStream, window: window };
+                }, function(stockStream, buffer) {
+                    return { stockStream: stockStream, buffer: buffer };
                 })
-                .where(function (t) {
-                    return t.window.length > 0;
+                .where(function(t) {
+                    return t.buffer.length === 5;
                 })
                 .select(calculate)
                 .publish()
                 .refCount();
+
+            // Update the bottom row for listeners based upon items inserted
+            Rx.Observable.fromEvent(this.selectedSymbol, 'iteminserted').selectMany(function (e) {
+                console.log(e.detail.value.symbol);
+
+                return stream
+                    .where(function (ev) {
+                        return ev.symbol === e.detail.value.symbol;
+                    })
+                    .select(function (ev) {
+                        return { stream: ev, stock: e.detail.value };
+                    });
+            })
+            .subscribe(function (x) {
+                x.stock.lastClose = x.stream.lastClose;
+                x.stock.lastDate = x.stream.lastDate;
+                x.stock.averageHigh = x.stream.averageHigh;
+                x.stock.averageLow = x.stream.averageLow;
+            });
 
             // draw a line graph of the lastClose price
             var lineGraph = stream
@@ -179,14 +232,7 @@
                 }, onError);
 
             // if the data matches the selected symbol, update the selection view model
-            var latestPrice = stream
-                .where(function (x) {
-                    return x.symbol === selection.symbol;
-                })
-                .sample(3000 /*ms*/)
-                .subscribe(function (x) {
-                    selection.lastClose = x.lastClose;
-                });
+            var latestPrice = Rx.Disposable.empty;
 
             // if we receive a new symbol, add it to the legend
             var symbols = stream
@@ -201,15 +247,35 @@
                 }, onError);
 
             // if there is a spike in the price, render that as a circle
-            var spikes = stream
+            var spikes = groupedTickStream
+                .selectMany(function (stockStream) {
+                    
+                    // Get the previous day and current day
+                    return stockStream.bufferWithCount(2, 1);
+                }, function (stockStream, buffer) {
+                    
+                    // Project forward the symbol, timestamp and buffer
+                    var len = buffer.length;
+                    return {
+                        symbol: stockStream.key,
+                        timestamp: buffer[len - 1].timestamp,
+                        buffer: buffer
+                    };
+                })
+                .where(function (x) {
+                    return x.buffer.length === 2;
+                })
                 .doAction(function (x) {
+                    
+                    // Project forward the first close, last close and spike
+                    x.firstClose = x.buffer[0].close;
+                    x.lastClose = x.buffer[1].close;
                     x.spike = (x.lastClose - x.firstClose) / x.firstClose;
                 })
                 .where(function (x) {
                     return Math.abs(x.spike) >= 0.1;
                 })
                 .subscribe(function (x) {
-                    // console.log('Price spiked by ' + x.symbol + ' from ' + x.firstClose + ' to ' + x.lastClose + ' in the week ending ' + x.lastDate);
                     var sticks = getOrAddSet(x.symbol, 'candlestick');
                     var radius = Math.abs(x.spike) * 33;
                     sticks.append(x.timestamp, x.lastClose, radius);

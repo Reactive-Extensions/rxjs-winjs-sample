@@ -118,7 +118,7 @@
         // render the handles in their initial positiions
         handles.forEach(function (element) { element['render'](); });
 
-        return new promise(function (complete, error, progress) {
+        return new promise(function (complete) {
             complete(handles);
         });
     }
@@ -160,16 +160,16 @@
                             element: handle.target,
                             offsetX: pos.offsetX,
                             offsetY: pos.offsetY
-                        }
+                        };
                     })
                     // However, when the mouse is up (anywhere on the document) then stop the stream
                     .takeUntil(up);
             });
 
-        subscription = events.subscribe(function (data) {
+        subscription = events.subscribe(function(data) {
             data.element.updateModel(data.offsetX, data.offsetY);
             window.requestAnimationFrame(drawOverlay);
-        })
+        });
         cleanup.setDisposable(subscription);
     }
 

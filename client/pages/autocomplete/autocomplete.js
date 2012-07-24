@@ -11,33 +11,40 @@
     }
 
     var searchPane = Windows.ApplicationModel.Search.SearchPane.getForCurrentView();
-    var suggestionsRequested = Rx.Observable.fromEvent(searchPane, 'suggestionsrequested').publish().refCount();
-
-    suggestionsRequested.subscribe(function (x) {
-        console.log(x.queryText);
-    });
-
-    var suggestionObs = suggestionsRequested
-        .select(function (e) { return { deferral: e.request.getDeferral(), eventObject: e }; })
+    
+    var suggestions = Rx.Observable
+        .fromEvent(searchPane, 'suggestionsrequested')
+        .select(function (e) {
+             return {
+                 deferral: e.request.getDeferral(),
+                 queryText: e.queryText,
+                 searchSuggestions: e.request.searchSuggestionCollection
+             };
+        })
         .throttle(1000)
         .select(function (e) {
-            return searchWikipedia(e.eventObject.queryText).select(function (r) {
-                return { results: r, eventObject: e.eventObject, deferral: e.deferral };
+            return searchWikipedia(e.queryText).select(function (r) {
+                return {
+                    results: r,
+                    searchSuggestions: e.searchSuggestions,
+                    deferral: e.deferral
+                };
             });
         })
         .switchLatest();
 
-    suggestionObs.subscribe(function (e) {
-        var suggestionRequest = e.eventObject.request;
-        suggestionRequest.searchSuggestionCollection.appendQuerySuggestions(e.results[1]);
+    suggestions.subscribe(function (e) {
+        e.searchSuggestions.appendQuerySuggestions(e.results);
         e.deferral.complete();
+    }, function (err) {
+        console.log(err);
     });
 
     function searchWikipedia(term) {
         var url = 'http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search='
             + window.encodeURI(term);
         return WinJS.xhr({ url: url }).toObservable().select(function (response) {
-            return JSON.parse(response.response);
+            return JSON.parse(response.response)[1];
         });
     }
 

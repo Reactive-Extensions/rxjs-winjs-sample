@@ -1,3 +1,11 @@
 ﻿.dragndrop p {
     margin-left: 120px;
 }
+
+.dragndrop div {
+    background-image: url(/images/logo.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    height: 300px;
+    width: 300px;
+}

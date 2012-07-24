@@ -13,29 +13,33 @@
         name: 'Stocks',
         page: 'stocks'
     },
-    {
-        name: 'Time Files',
-        page: 'timeflies'
-    },
+    //{
+    //    name: 'Time Files',
+    //    page: 'timeflies'
+    //},
     {
         name: 'AutoComplete',
         page: 'autocomplete'
     },
-    {
-        name: 'Canvas Painting',
-        page: 'canvaspaint'
-    },
+    //{
+    //    name: 'Canvas Painting',
+    //    page: 'canvaspaint'
+    //},
     {
         name: 'Drag and Drop',
         page: 'dragndrop'
     },
-    {
-        name: 'Buffering',
-        page: 'buffering'
-    },
+    //{
+    //    name: 'Buffering',
+    //    page: 'buffering'
+    //},
     {
         name: 'Binding',
         page: 'binding'
+    },
+    {
+        name: 'Alphabet Invasion',
+        page: 'alphabetinvasion'
     },
     {
         name: 'Clock',
