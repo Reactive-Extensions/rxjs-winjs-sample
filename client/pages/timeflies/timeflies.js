@@ -1,6 +1,5 @@
 ﻿// For an introduction to the Page Control template, see the following documentation:
 // http://go.microsoft.com/fwlink/?LinkId=232511
-/// <reference path="/rxjs/rx.js" />
 (function () {
     "use strict";
 

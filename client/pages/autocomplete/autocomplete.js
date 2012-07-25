@@ -4,42 +4,6 @@
 (function () {
     "use strict";
 
-    function clearChildren(element) {
-        while (element.firstChild) {
-            element.removeChild(element.firstChild);
-        }
-    }
-
-    var searchPane = Windows.ApplicationModel.Search.SearchPane.getForCurrentView();
-    
-    var suggestions = Rx.Observable
-        .fromEvent(searchPane, 'suggestionsrequested')
-        .select(function (e) {
-             return {
-                 deferral: e.request.getDeferral(),
-                 queryText: e.queryText,
-                 searchSuggestions: e.request.searchSuggestionCollection
-             };
-        })
-        .throttle(1000)
-        .select(function (e) {
-            return searchWikipedia(e.queryText).select(function (r) {
-                return {
-                    results: r,
-                    searchSuggestions: e.searchSuggestions,
-                    deferral: e.deferral
-                };
-            });
-        })
-        .switchLatest();
-
-    suggestions.subscribe(function (e) {
-        e.searchSuggestions.appendQuerySuggestions(e.results);
-        e.deferral.complete();
-    }, function (err) {
-        console.log(err);
-    });
-
     function searchWikipedia(term) {
         var url = 'http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search='
             + window.encodeURI(term);
@@ -48,17 +12,45 @@
         });
     }
 
-    var subscription;
-    function initialize() {
+    function initializeSearchCharm() {
+        var searchPane = Windows.ApplicationModel.Search.SearchPane.getForCurrentView();
 
-        if (subscription && !subscription.isDisposed) {
-            subscription.dispose();
-        }
-        subscription = new Rx.SingleAssignmentDisposable();
+        var suggestions = Rx.Observable
+            .fromEvent(searchPane, 'suggestionsrequested')
+            .select(function (e) {
+                return {
+                    deferral: e.request.getDeferral(),
+                    queryText: e.queryText,
+                    searchSuggestions: e.request.searchSuggestionCollection
+                };
+            })
+            .throttle(1000)
+            .select(function (e) {
+                return searchWikipedia(e.queryText).select(function (r) {
+                    return {
+                        results: r,
+                        searchSuggestions: e.searchSuggestions,
+                        deferral: e.deferral
+                    };
+                });
+            })
+            .switchLatest();
+
+        suggestions.subscribe(function (e) {
+            e.searchSuggestions.appendQuerySuggestions(e.results);
+            e.deferral.complete();
+        }, function (err) {
+            console.log(err);
+        });
+    }
+
+    function initializeAutoComplete() {
 
         // Get input/output
         var input = document.querySelector('#rxInput');
-        var resultsList = document.querySelector('#rxResults');
+        var list = new WinJS.Binding.List();
+        var results = document.querySelector('#results').winControl;
+        results.itemDataSource = list.dataSource;
 
         // Handle Key ups
         var keyup = Rx.Observable.fromEvent(input, 'keyup')
@@ -73,32 +65,26 @@
 
         // Handle query
         var searcher = keyup
-            .select(function (text) {
-                return searchWikipedia(text);
-            })
-            .switchLatest()
-            .where(function (results) {
-                return results.length === 2;
-            });
+            .select(function (text) { return searchWikipedia(text); })
+            .switchLatest();
 
         // Subscribe to results and handle the cancellation
-        subscription.setDisposable(searcher.subscribe(
+        searcher.subscribe(
             function (data) {
-                var results = data[1];
-                clearChildren(resultsList);
-
-                results.forEach(function (result) {
-                    var li = document.createElement('li');
-                    li.innerText = result;
-                    resultsList.appendChild(li);
+                list.splice(0, list.length);
+                data.forEach(function (item) {
+                    list.push({ text: item });
                 });
             },
             function (err) {
-                clearChildren(resultsList);
-                var li = document.createElement('li');
-                li.innerText = err;
-                resultsList.appendChild(li);
-            }));
+                list.splice(0, list.length);
+                list.push({ text: err });
+            });
+    }
+
+    function initialize() {
+        initializeAutoComplete();
+        initializeSearchCharm();
     }
 
     WinJS.UI.Pages.define("/pages/autocomplete/autocomplete.html", {
@@ -117,7 +103,7 @@
         },
 
         unload: function () {
-            subscription.dispose();
+            
         }
     });
 })();

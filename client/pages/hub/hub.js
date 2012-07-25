@@ -13,26 +13,14 @@
         name: 'Stocks',
         page: 'stocks'
     },
-    //{
-    //    name: 'Time Files',
-    //    page: 'timeflies'
-    //},
     {
         name: 'AutoComplete',
         page: 'autocomplete'
     },
-    //{
-    //    name: 'Canvas Painting',
-    //    page: 'canvaspaint'
-    //},
     {
         name: 'Drag and Drop',
         page: 'dragndrop'
     },
-    //{
-    //    name: 'Buffering',
-    //    page: 'buffering'
-    //},
     {
         name: 'Binding',
         page: 'binding'
@@ -42,8 +30,8 @@
         page: 'alphabetinvasion'
     },
     {
-        name: 'Clock',
-        page: 'clock'
+        name: 'Sensors',
+        page: 'sensors'
     }
     ];
 

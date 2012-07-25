@@ -1,8 +1,4 @@
-﻿/// <reference path="/rxjs/rx.js" />
-/// <reference path="/rxjs/rx.time.js" />
-/// <reference path="/rxjs/reactivewinjs.js" />
-
-(function () {
+﻿(function () {
     'use strict';
     
     // Convert the date/time to a string

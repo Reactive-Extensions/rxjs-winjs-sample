@@ -21,23 +21,24 @@
             </h1>
         </header>
         <section aria-label="Main content" role="main">
-            
-            <div id="bartTable">
-                <div>Bart</div>
-                <div>Age: <span data-win-bind="innerText:age"></span></div>
-                <button id="bartButtonPlus1">Birthday!</button>
-                <button id="bartButtonLiving">Live...</button>
-            </div>
+            <div id="container">
+                <div id="bartTable">
+                    <div>Bart</div>
+                    <div>Age: <span data-win-bind="innerText:age"></span></div>
+                    <div><button id="bartButtonPlus1" class="bindingbutton">Birthday!</button></div>
+                    <div><button id="bartButtonLiving" class="bindingbutton">Live...</button></div>
+                </div>
 
-            <div id="mattTable">
-                <div>Matt</div>
-                <div>Age: <span data-win-bind="innerText:age"></span></div>
-                <button id="mattButtonPlus1">Birthday!</button>
-                <button id="mattButtonLiving">Live...</button>
-            </div>
+                <div id="mattTable">
+                    <div>Matt</div>
+                    <div>Age: <span data-win-bind="innerText:age"></span></div>
+                    <div><button id="mattButtonPlus1" class="bindingbutton">Birthday!</button></div>
+                    <div><button id="mattButtonLiving" class="bindingbutton">Live...</button></div>
+                </div>
             
-            <div id="sumTable">
-                <div>Combined age: <span data-win-bind="innerText:age"></span></div>
+                <div id="sumTable">
+                    <div>Combined age: <span data-win-bind="innerText:age"></span></div>
+                </div>
             </div>
         </section>
     </div>

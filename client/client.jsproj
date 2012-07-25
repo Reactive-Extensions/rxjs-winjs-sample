@@ -89,6 +89,9 @@
     <Content Include="pages\hub\hub.html" />
     <Content Include="pages\hub\hub.js" />
     <Content Include="default.html" />
+    <Content Include="pages\sensors\sensors.css" />
+    <Content Include="pages\sensors\sensors.html" />
+    <Content Include="pages\sensors\sensors.js" />
     <Content Include="pages\stocks\stocks.css" />
     <Content Include="pages\stocks\stocks.html" />
     <Content Include="pages\stocks\stocks.js" />

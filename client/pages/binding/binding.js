@@ -1,6 +1,4 @@
-﻿/// <reference path="/rxjs/rx.js" />
-/// <reference path="/rxjs/reactivewinjs.js" />
-(function () {
+﻿(function () {
     "use strict";
 
     var subscription;
@@ -23,11 +21,13 @@
             var bartLiveButton = document.querySelector('#bartButtonLiving');
             var mattLiveButton = document.querySelector('#mattButtonLiving');
             
+            // Set up some timers
             var bartTimer = Rx.Observable.interval(3650);
             var mattTimer = Rx.Observable.interval(3650);
 
-            var bart = WinJS.Binding.as({ name: 'Bart', age: 29 });
-            var matt = WinJS.Binding.as({ name: 'Matt', age: 12 });
+            // Create observable objects and bind
+            var bart = WinJS.Binding.as({ name: 'Bart', age: 1 });
+            var matt = WinJS.Binding.as({ name: 'Matt', age: 1 });
             var combinedAge = WinJS.Binding.as({ age: matt.age + bart.age });
 
             WinJS.Binding.processAll(bartTable, bart);

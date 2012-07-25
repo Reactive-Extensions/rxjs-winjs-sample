@@ -21,8 +21,24 @@
             </h1>
         </header>
         <section aria-label="Main content" role="main">
-            <input id="rxInput" type="text" /><br />
-            <ul id="rxResults"></ul>
+            <div id="suggestItemTemplate" data-win-control="WinJS.Binding.Template">
+                <div class="resultItem">
+                    <div data-win-bind="innerText: text"></div>
+                </div>
+            </div>
+
+            <p>Start typing for suggestions...</p>
+            <div class="suggestions">              
+                <input id="rxInput" type="text" />
+            </div>
+            
+            <div id="results" class="suggestions"
+                 data-win-control="WinJS.UI.ListView"
+                 data-win-options="{ 
+	                itemTemplate: select('#suggestItemTemplate'),
+	                selectionMode: 'none'
+                }">
+            </div>
         </section>
     </div>
 </body>
