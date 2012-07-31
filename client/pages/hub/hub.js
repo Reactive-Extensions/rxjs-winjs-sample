@@ -6,20 +6,20 @@
 
     var menu = [
     {
-        name: 'Image Crop',
-        page: 'crop'
+        name: 'Drag and Drop',
+        page: 'dragndrop'
     },
     {
-        name: 'Stocks',
-        page: 'stocks'
+        name: 'Image Crop',
+        page: 'crop'
     },
     {
         name: 'AutoComplete',
         page: 'autocomplete'
     },
     {
-        name: 'Drag and Drop',
-        page: 'dragndrop'
+        name: 'Stocks',
+        page: 'stocks'
     },
     {
         name: 'Binding',

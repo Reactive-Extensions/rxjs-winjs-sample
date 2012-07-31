@@ -38,6 +38,7 @@
             (function (i) {
                 var s = document.createElement('span');
                 s.innerHTML = text[i];
+                s.className = 'timeFliesText';
                 s.style.position = 'absolute';
                 container.appendChild(s);
 

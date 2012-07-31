@@ -64,9 +64,9 @@
                 for (var i = 0; i < len; i++) {
                     reading = es[i].reading;
 
-                    averagex += reading.x.toFixed(2);
-                    averagey += reading.y.toFixed(2);
-                    averagez += reading.z.toFixed(2);
+                    averagex += reading.accelerationX;
+                    averagey += reading.accelerationY;
+                    averagez += reading.accelerationZ;
                 }
 
                 data.x = averagex / len;

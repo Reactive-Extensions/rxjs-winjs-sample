@@ -2,6 +2,11 @@
     margin-left: 120px;
 }
 
+.sensors .resultText {
+    font-weight: bold;
+    color: red;
+}
+
 .sensors .dataSections {
     margin-left: 120px;
     font-size: 24px;
@@ -9,4 +14,5 @@
 
 .sensors #accelerationSection {
     margin-top: 100px;
+    font-size: 24px;
 }

@@ -4,6 +4,8 @@
 (function () {
     "use strict";
 
+    var subscriptions;
+
     function searchWikipedia(term) {
         var url = 'http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search='
             + window.encodeURI(term);
@@ -15,6 +17,7 @@
     function initializeSearchCharm() {
         var searchPane = Windows.ApplicationModel.Search.SearchPane.getForCurrentView();
 
+        // Hook into the suggestions requested event and then create the deferral and anything else we need
         var suggestions = Rx.Observable
             .fromEvent(searchPane, 'suggestionsrequested')
             .select(function (e) {
@@ -36,12 +39,15 @@
             })
             .switchLatest();
 
-        suggestions.subscribe(function (e) {
+        // Subscribe, append results and set the deferral to complete
+        var subscription = suggestions.subscribe(function (e) {
             e.searchSuggestions.appendQuerySuggestions(e.results);
             e.deferral.complete();
         }, function (err) {
             console.log(err);
         });
+
+        subscriptions.add(subscription);
     }
 
     function initializeAutoComplete() {
@@ -69,7 +75,7 @@
             .switchLatest();
 
         // Subscribe to results and handle the cancellation
-        searcher.subscribe(
+        var subscription = searcher.subscribe(
             function (data) {
                 list.splice(0, list.length);
                 data.forEach(function (item) {
@@ -80,11 +86,18 @@
                 list.splice(0, list.length);
                 list.push({ text: err });
             });
+
+        subscriptions.add(subscription);
     }
 
     function initialize() {
+        subscriptions = new Rx.CompositeDisposable();
         initializeAutoComplete();
         initializeSearchCharm();
+    }
+
+    function teardown() {
+        subscriptions.dispose();
     }
 
     WinJS.UI.Pages.define("/pages/autocomplete/autocomplete.html", {
@@ -103,7 +116,7 @@
         },
 
         unload: function () {
-            
+            teardown();
         }
     });
 })();

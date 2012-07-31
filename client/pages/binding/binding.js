@@ -37,6 +37,7 @@
             var bartObs = bart.toObservable('age').select(getNewValue);
             var mattObs = matt.toObservable('age').select(getNewValue);
 
+            // React to button clicks
             var mattPlus = Rx.Observable.fromEvent(bartPlusButton, 'click').subscribe(function () {
                 bart.age++;
             });
@@ -44,6 +45,7 @@
                 matt.age++;
             });
 
+            // React to Live Button Presses
             var bartLive = Rx.Observable.fromEvent(bartLiveButton, 'click').take(1).selectMany(function () {
                 bartLiveButton.disabled = true;
                 return bartTimer;
@@ -57,11 +59,11 @@
                 matt.age++;
             });
 
-            var result = bartObs.combineLatest(mattObs, function(age1, age2) {
+            // Combine the latest of Matt and Bart's ages
+            var updater = bartObs.combineLatest(mattObs, function (age1, age2) {
                 return age1 + age2;
-            });
-
-            var updater = result.subscribe(function (age) {
+            })
+            .subscribe(function (age) {
                 combinedAge.age = age;
             });
 

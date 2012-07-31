@@ -37,3 +37,8 @@
 	width: 150px;
 	background-color: blue;
 }
+
+.binding .ageText {
+    color: red;
+    font-weight: bold;
+}

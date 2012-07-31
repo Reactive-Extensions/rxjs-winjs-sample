@@ -76,8 +76,8 @@
         // This function is called whenever a user navigates to this page. It
         // populates the page elements with the app's data.
         ready: function (element, options) {
-            //initialize();
-            initializeWithoutRxJs();
+            initialize();
+            //initializeWithoutRxJs();
         },
 
         updateLayout: function (element, viewState, lastViewState) {
@@ -89,8 +89,8 @@
         },
 
         unload: function () {
-            //teardown();
-            teardownWithoutRxJs();
+            teardown();
+            //teardownWithoutRxJs();
         }
     });
 })();

@@ -1,16 +1,5 @@
 ﻿(function () {
     'use strict';
-    
-    // Convert the date/time to a string
-    var dateConverter = WinJS.Binding.converter(function (date) {
-        if (date === '') return '';
-        var currentDate = new Date(date);
-        return currentDate.toDateString();
-    });
-
-    WinJS.Namespace.define('WinJSStocks.Converters', {
-        dateConverter: dateConverter
-    });
 
     var subscription;
 
@@ -172,11 +161,12 @@
                 connection.state = 'server found';
             });
 
-            // define the primary stream of real-time data
+            // define the primary stream of real-time data grouped by symbol
             var groupedTickStream = observable
                 .selectMany(function (value) {
-                    var data = JSON.parse(value.data);
-                    var date = new Date().getTime();
+                    var data = JSON.parse(value.data),
+                        date = new Date().getTime();
+
                     return Rx.Observable.fromArray(data).doAction(function(x) {
                         x.timestamp = date;
                     });
